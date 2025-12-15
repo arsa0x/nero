@@ -1,41 +1,42 @@
-#[allow(unused)]
-use nero_core::{
-    self,
-    ast::{Expr, Stmt},
-    lexer::Lexer,
-    parser::{Parser, ParserError},
-};
+mod utils;
 
-#[allow(unused)]
-fn parse_ok(input: &str) -> Vec<Stmt> {
-    let tokens = Lexer::tokenize(input).unwrap();
-    let mut parser = Parser { tokens, pos: 0 };
-    parser.parse().unwrap()
-}
+#[cfg(test)]
+mod tests {
+    const EXAMPLE: &str = include_str!("../../example/get_method.ns");
+    use crate::utils::TestUtils;
+    use nero_core::{
+        self,
+        ast::{Expr, Stmt},
+        lexer::Lexer,
+        parser::{Parser, ParserError},
+    };
 
-#[allow(unused)]
-fn parse_err(input: &str) -> ParserError {
-    let tokens = Lexer::tokenize(input).unwrap();
-    let mut parser = Parser { tokens, pos: 0 };
-    parser.parse().unwrap_err()
-}
+    #[test]
+    fn test_assignment_number() {
+        let ast = TestUtils::parse_ok("port = 3000;");
 
-#[test]
-fn test_assignment_number() {
-    let ast = parse_ok("port = 3000;");
+        assert_eq!(
+            ast,
+            vec![Stmt::Assignment {
+                name: "port".into(),
+                value: Expr::Number(3000),
+            }]
+        );
+    }
 
-    assert_eq!(
-        ast,
-        vec![Stmt::Assignment {
-            name: "port".into(),
-            value: Expr::Number(3000),
-        }]
-    );
-}
+    #[test]
+    fn test_assignment_missing_semicolon() {
+        let err = TestUtils::parse_err("port = 3000");
 
-#[test]
-fn test_assignment_missing_semicolon() {
-    let err = parse_err("port = 3000");
+        assert!(matches!(err, ParserError::UnexpectedEOF));
+    }
 
-    assert!(matches!(err, ParserError::UnexpectedEOF));
+    #[test]
+    fn parse_simple_get() {
+        let tokens = Lexer::tokenize(EXAMPLE).unwrap();
+        let mut parser = Parser::new(tokens);
+        let ast = parser.parse().unwrap();
+
+        assert_eq!(ast.len(), 3);
+    }
 }

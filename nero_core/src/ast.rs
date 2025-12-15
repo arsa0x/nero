@@ -5,7 +5,7 @@ pub struct Req {
     pub url: Expr,
     pub headers: Vec<(String, Expr)>,
     pub query: Vec<(String, Expr)>,
-    pub body: Option<Expr>,
+    pub body: Option<Vec<(String, Expr)>>,
 }
 
 #[derive(Debug, PartialEq, Clone)]

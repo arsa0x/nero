@@ -145,6 +145,69 @@ impl Parser {
         Ok(Stmt::Assignment { name, value })
     }
 
+    /// Helper buat parse key value
+    fn parse_kv_pair(&mut self) -> Result<(String, Expr), ParserError> {
+        let key = if let Some(Token::StringLiteral(k)) = self.current() {
+            k.clone()
+        } else {
+            return Err(ParserError::InvalidExpression);
+        };
+        self.advance();
+        self.consume(&Token::Colon)?;
+        let value = self.parse_expression()?;
+        Ok((key, value))
+    }
+
+    fn parse_kv_block(&mut self) -> Result<Vec<(String, Expr)>, ParserError> {
+        let mut items: Vec<(String, Expr)> = Vec::new();
+        self.consume(&Token::OpenBrace)?;
+
+        while !matches!(self.current(), Some(Token::CloseBrace)) {
+            let pair = self.parse_kv_pair()?;
+            items.push(pair);
+
+            if matches!(self.current(), Some(Token::Comma)) {
+                self.advance();
+            }
+        }
+
+        self.consume(&Token::CloseBrace)?;
+        Ok(items)
+    }
+
+    /// parse block section
+    fn parse_section(&mut self, req: &mut Req) -> Result<(), ParserError> {
+        let section_name = if let Some(Token::Identifier(name)) = self.current() {
+            name.clone().to_uppercase()
+        } else {
+            return Err(ParserError::InvalidExpression);
+        };
+        self.advance();
+
+        match section_name.as_str() {
+            "HEADERS" => {
+                let headers = self.parse_kv_block()?;
+                req.headers = headers;
+            }
+            "QUERY" => {
+                let query = self.parse_kv_block()?;
+                req.query = query;
+            }
+            "BODY" => {
+                let body = self.parse_kv_block()?;
+                req.body = Some(body);
+            }
+            _ => {
+                return Err(ParserError::UnexpectedToken {
+                    expected: Token::Identifier("HEADERS|QUERY|BODY".into()),
+                    found: Token::Identifier(section_name),
+                });
+            }
+        }
+
+        Ok(())
+    }
+
     /// Fungsi untuk parse request
     ///
     /// # Grammar
@@ -177,21 +240,22 @@ impl Parser {
         self.advance();
         let url = self.parse_expression()?;
 
-        self.consume(&Token::OpenBrace)?;
-        while !matches!(self.current(), Some(Token::CloseBrace)) {
-            // todo
-            self.advance();
-        }
-        self.consume(&Token::CloseBrace)?;
-
-        Ok(Stmt::Request(Req {
+        let mut req: Req = Req {
             label,
             method,
             url,
             headers: vec![],
             query: vec![],
             body: None,
-        }))
+        };
+
+        self.consume(&Token::OpenBrace)?;
+        while !matches!(self.current(), Some(Token::CloseBrace)) {
+            self.parse_section(&mut req)?;
+        }
+        self.consume(&Token::CloseBrace)?;
+
+        Ok(Stmt::Request(req))
     }
 
     /// Entry point fungsi parser

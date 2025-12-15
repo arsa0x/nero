@@ -1,12 +1,19 @@
 port = 3000;
 url = "http://localhost:${port}";
 
-#[test_get]
-@GET url;
-
-#[test_get_with_header]
+#[test_get_method]
 @GET url {
     HEADERS {
         "Content-Type": "application/json",
+        "Accept": "text/plain"
+    }
+
+    QUERY {
+        "msg": "Ellen my waifu gw",
+        "page": 2
+    }
+
+    BODY {
+        "name": "nero"
     }
 }
