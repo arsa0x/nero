@@ -1,0 +1,3 @@
+[workspace]
+members = ["nero_bin", "nero_core", "nero_tests"]
+resolver = "3"

@@ -1,0 +1,14 @@
+variable = value;
+
+#[label]
+@METHOD "url" {
+    HEADER {
+        "header": "value"
+    }
+    QUERY {
+        "QUERY": "value"
+    }
+    BODY {
+        "BODY": "value"
+    }
+}

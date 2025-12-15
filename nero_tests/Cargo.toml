@@ -1,0 +1,7 @@
+[package]
+name = "nero_tests"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nero_core = {path = "../nero_core"}
