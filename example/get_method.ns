@@ -12,8 +12,4 @@ url = "http://localhost:${port}";
         "msg": "Ellen my waifu gw",
         "page": 2
     }
-
-    BODY {
-        "name": "nero"
-    }
 }
