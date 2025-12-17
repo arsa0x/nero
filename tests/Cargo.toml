@@ -1,7 +1,7 @@
 [package]
-name = "nero_tests"
+name = "tests"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-nero_core = {path = "../nero_core"}
+nero_core = {path = "../crates/nero_core"}

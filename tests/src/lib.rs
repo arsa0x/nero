@@ -9,6 +9,8 @@ mod tests {
         ast::{Expr, Stmt},
         lexer::Lexer,
         parser::{Parser, ParserError},
+        resolver::Resolver,
+        semantic::{SemanticChecker, SemanticError},
     };
 
     #[test]
@@ -38,5 +40,28 @@ mod tests {
         let ast = parser.parse().unwrap();
 
         assert_eq!(ast.len(), 3);
+    }
+
+    #[test]
+    fn duplicate_label() {
+        let src = r#"
+            #[test_get]
+            @GET "url" {}
+            #[test_get]
+            @GET "url" {}
+        "#;
+
+        let ast = Parser::new(Lexer::tokenize(src).unwrap()).parse().unwrap();
+
+        let mut resolver = Resolver::new();
+        ast.iter().for_each(|s| {
+            resolver.resolve_statement(s).unwrap();
+        });
+
+        let mut semantic = SemanticChecker::new(&resolver);
+
+        let res = ast.iter().try_for_each(|s| semantic.check_statement(s));
+
+        assert!(matches!(res, Err(SemanticError::DuplicateLabel(_))));
     }
 }

@@ -24,7 +24,7 @@ impl Resolver {
             variables: HashMap::new(),
         }
     }
-    fn resolve_expression(&self, expr: &Expr) -> Result<Value, ResolveError> {
+    pub fn resolve_expression(&self, expr: &Expr) -> Result<Value, ResolveError> {
         match expr {
             Expr::Number(n) => Ok(Value::Number(*n)),
             Expr::Identifier(name) => self

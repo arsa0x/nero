@@ -1,3 +1,8 @@
 [workspace]
-members = ["nero_bin", "nero_core", "nero_tests"]
+members = [
+    "crates/nero_core",
+    "crates/nero_bin",
+    "crates/nero_requests",
+    "tests"
+]
 resolver = "3"

@@ -14,7 +14,11 @@ name = "nero_core"
 version = "0.1.0"
 
 [[package]]
-name = "nero_tests"
+name = "nero_requests"
+version = "0.1.0"
+
+[[package]]
+name = "tests"
 version = "0.1.0"
 dependencies = [
  "nero_core",
