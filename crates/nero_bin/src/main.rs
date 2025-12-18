@@ -1,34 +1,31 @@
 use nero_core::{
-    lexer::Lexer,
-    parser::Parser,
-    resolver::Resolver,
-    semantic::{SemanticChecker, SemanticError},
+    ast::Stmt, lexer::Lexer, parser::Parser, resolver::Resolver, semantic::SemanticChecker,
 };
+use nero_requests::executor::Executor;
 
-const EXAMPLE: &str = include_str!("../../../example/get_method.ns");
+const EXAMPLE: &str = include_str!("../../../dev/script/simple_get.ns");
 
-fn main() -> Result<(), SemanticError> {
-    println!("{}\n", EXAMPLE);
-    let lex = Lexer::tokenize(EXAMPLE);
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let tokens = Lexer::tokenize(EXAMPLE)?;
+    let ast = Parser::new(tokens).parse()?;
 
-    match lex {
-        Ok(result) => {
-            let mut parser = Parser::new(result);
-            let ast = parser.parse().unwrap();
-
-            let mut resolver = Resolver::new();
-
-            for stmt in &ast {
-                resolver.resolve_statement(stmt).unwrap();
-            }
-
-            let mut semantic = SemanticChecker::new(&resolver);
-
-            for stmt in &ast {
-                semantic.check_statement(stmt)?;
-            }
-        }
-        Err(err) => println!("{:?}", err),
+    let mut resolver = Resolver::new();
+    for stmt in &ast {
+        resolver.resolve_statement(stmt)?;
     }
+
+    let mut semantic = SemanticChecker::new(&resolver);
+    for stmt in &ast {
+        semantic.check_statement(stmt)?;
+    }
+
+    let executor = Executor::new(&resolver);
+    for stmt in &ast {
+        if let Stmt::Request(req) = stmt {
+            executor.execute(req).await?;
+        }
+    }
+
     Ok(())
 }

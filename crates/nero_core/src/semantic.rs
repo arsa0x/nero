@@ -18,6 +18,19 @@ pub enum SemanticError {
     DuplicateLabel(String),
 }
 
+impl std::error::Error for SemanticError {}
+
+impl std::fmt::Display for SemanticError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::BodyNotAllowed(_) => write!(f, "Body not allowed"),
+            Self::DuplicateLabel(l) => write!(f, "Duplicate label: {}", l),
+            Self::HeaderValueMustBeString => write!(f, "Headers value must be string"),
+            Self::UrlMustBeString => write!(f, "Url must be string"),
+        }
+    }
+}
+
 impl<'a> SemanticChecker<'a> {
     pub fn new(resolver: &'a Resolver) -> Self {
         Self {

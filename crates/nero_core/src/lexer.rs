@@ -16,6 +16,8 @@ pub enum LexerError {
     // MissingSemicolon,
 }
 
+impl std::error::Error for LexerError {}
+
 impl fmt::Display for LexerError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

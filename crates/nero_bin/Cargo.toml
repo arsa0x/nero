@@ -5,6 +5,9 @@ edition = "2024"
 
 [dependencies]
 nero_core = { path = "../nero_core" }
+nero_requests = { path = "../nero_requests" }
+tokio = {workspace = true}
+reqwest = {workspace = true}
 
 [[bin]]
 name = "nero"

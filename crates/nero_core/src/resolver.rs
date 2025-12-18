@@ -13,9 +13,19 @@ pub enum Value {
 }
 
 #[derive(Debug)]
-pub enum ResolveError {
+pub enum ResolverError {
     UndefinedVariable(String),
     InvalidExpression,
+}
+
+impl std::error::Error for ResolverError {}
+impl std::fmt::Display for ResolverError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::UndefinedVariable(v) => write!(f, "Undefined variable: {}", v),
+            Self::InvalidExpression => write!(f, "Invalid expression"),
+        }
+    }
 }
 
 impl Resolver {
@@ -24,14 +34,14 @@ impl Resolver {
             variables: HashMap::new(),
         }
     }
-    pub fn resolve_expression(&self, expr: &Expr) -> Result<Value, ResolveError> {
+    pub fn resolve_expression(&self, expr: &Expr) -> Result<Value, ResolverError> {
         match expr {
             Expr::Number(n) => Ok(Value::Number(*n)),
             Expr::Identifier(name) => self
                 .variables
                 .get(name)
                 .cloned()
-                .ok_or(ResolveError::UndefinedVariable(name.clone())),
+                .ok_or(ResolverError::UndefinedVariable(name.clone())),
             Expr::String(parts) => {
                 let mut result = String::new();
 
@@ -51,7 +61,7 @@ impl Resolver {
             }
         }
     }
-    pub fn resolve_statement(&mut self, stmt: &Stmt) -> Result<(), ResolveError> {
+    pub fn resolve_statement(&mut self, stmt: &Stmt) -> Result<(), ResolverError> {
         match stmt {
             Stmt::Assignment { name, value } => {
                 let v = self.resolve_expression(value)?;

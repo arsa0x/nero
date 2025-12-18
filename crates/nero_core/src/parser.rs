@@ -15,6 +15,8 @@ pub enum ParserError {
     UnexpectedToken { expected: Token, found: Token },
 }
 
+impl std::error::Error for ParserError {}
+
 impl std::fmt::Display for ParserError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
