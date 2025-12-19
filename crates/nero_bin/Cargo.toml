@@ -6,8 +6,11 @@ edition = "2024"
 [dependencies]
 nero_core = { path = "../nero_core" }
 nero_requests = { path = "../nero_requests" }
-tokio = {workspace = true}
+tokio = {version = "1.48.0", features = ["macros", "rt-multi-thread"]}
 reqwest = {workspace = true}
+clap = {version = "4.5.53", features = ["derive"]}
+colored = "3.0.0"
+anyhow = {workspace = true}
 
 [[bin]]
 name = "nero"

@@ -1,0 +1,19 @@
+url = "http://localhost:3000";
+
+#[request_1]
+@GET url {}
+
+#[request_2]
+@POST "${url}/user" {
+    BODY {
+        "user": "john_doe"
+        "password": "123abc",
+    }
+}
+
+#[request_3]
+@GET "${url}/result" {
+    QUERY {
+        "q": "Ellen my waifu gw"
+    }
+}

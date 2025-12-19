@@ -1,29 +1,33 @@
-use nero_core::{
-    ast::Stmt, lexer::Lexer, parser::Parser, resolver::Resolver, semantic::SemanticChecker,
-};
-use nero_requests::executor::Executor;
+use clap::Parser;
 
-const EXAMPLE: &str = include_str!("../../../dev/script/simple_get.ns");
+use crate::{cli::Cli, utils::Utils};
+
+mod cli;
+mod utils;
+// use nero_core::{
+//     ast::Stmt, lexer::Lexer, parser::Parser, resolver::Resolver, semantic::SemanticChecker,
+// };
+// use nero_requests::executor::Executor;
+
+// const EXAMPLE: &str = include_str!("../../../dev/sample/simple_get.ns");
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let tokens = Lexer::tokenize(EXAMPLE)?;
-    let ast = Parser::new(tokens).parse()?;
-
-    let mut resolver = Resolver::new();
-    for stmt in &ast {
-        resolver.resolve_statement(stmt)?;
-    }
-
-    let mut semantic = SemanticChecker::new(&resolver);
-    for stmt in &ast {
-        semantic.check_statement(stmt)?;
-    }
-
-    let executor = Executor::new(&resolver);
-    for stmt in &ast {
-        if let Stmt::Request(req) = stmt {
-            executor.execute(req).await?;
+    let cli = Cli::parse();
+    match cli.command {
+        cli::Commands::Compile { file } => {
+            println!("compile {}", file)
+        }
+        cli::Commands::Fetch {
+            method,
+            #[allow(unused)]
+            timeout,
+            url,
+        } => {
+            println!("fetching {} {}", method, url);
+        }
+        cli::Commands::Run { file } => {
+            let _ = Utils::run_file(&file).await?;
         }
     }
 

@@ -40,7 +40,7 @@ impl<'a> Executor<'a> {
         }
     }
 
-    pub async fn execute(&self, req: &Req) -> Result<(), ExecutorError> {
+    pub async fn execute(&self, req: &Req) -> Result<reqwest::Response, ExecutorError> {
         let url = self.resolve_string(&req.url);
         let mut request = match req.method.as_str() {
             "GET" => self.client.get(&url),
@@ -74,8 +74,6 @@ impl<'a> Executor<'a> {
             .await
             .map_err(|_| ExecutorError::RequestFailed)?;
 
-        println!("Status: {}", res.status());
-        println!("Body:\n{}", res.text().await.unwrap());
-        Ok(())
+        Ok(res)
     }
 }
