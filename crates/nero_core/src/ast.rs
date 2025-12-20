@@ -1,6 +1,6 @@
 #[derive(Debug, PartialEq, Clone)]
 pub struct Req {
-    pub label: Option<String>,
+    pub label: String,
     pub method: String,
     pub url: Expr,
     pub headers: Vec<(String, Expr)>,

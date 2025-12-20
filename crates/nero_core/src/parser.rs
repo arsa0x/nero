@@ -12,6 +12,7 @@ pub struct Parser {
 pub enum ParserError {
     InvalidExpression,
     UnexpectedEOF,
+    MissingTitle,
     UnexpectedToken { expected: Token, found: Token },
 }
 
@@ -20,6 +21,9 @@ impl std::error::Error for ParserError {}
 impl std::fmt::Display for ParserError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            ParserError::MissingTitle => {
+                write!(f, "Missing title")
+            }
             ParserError::InvalidExpression => {
                 write!(f, "Invalid expression")
             }
@@ -123,7 +127,9 @@ impl Parser {
                 Ok(Expr::Identifier(id))
             }
             // string template (interpolated string)
-            Some(Token::StringLiteral(_)) => self.parse_interpolated_string(),
+            Some(Token::StringLiteral(_)) | Some(Token::TemplateStart) => {
+                self.parse_interpolated_string()
+            }
             _ => Err(ParserError::InvalidExpression),
         }
     }
@@ -216,7 +222,7 @@ impl Parser {
     /// request = label? "@" Identifier expr block
     ///
     fn parse_request(&mut self) -> Result<Stmt, ParserError> {
-        let label: Option<String> = if matches!(self.current(), Some(Token::Hash)) {
+        let label: String = if matches!(self.current(), Some(Token::Hash)) {
             self.advance();
             self.consume(&Token::OpenBracket)?;
 
@@ -227,9 +233,9 @@ impl Parser {
             };
             self.advance();
             self.consume(&Token::CloseBracket)?;
-            Some(name)
+            name
         } else {
-            None
+            return Err(ParserError::MissingTitle);
         };
 
         self.consume(&Token::At)?;

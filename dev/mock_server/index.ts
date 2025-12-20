@@ -1,6 +1,11 @@
 const server = Bun.serve({
   routes: {
-    "/": new Response("Ok"),
+    "/": Response.json({ msg: "Ok" }),
+    "/user": {
+      GET: () => {
+        return new Response("Get user");
+      },
+    },
   },
 
   fetch(req) {

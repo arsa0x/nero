@@ -41,11 +41,12 @@ impl<'a> SemanticChecker<'a> {
 
     fn check_request(&mut self, req: &Req) -> Result<(), SemanticError> {
         // cek label tetap unik/tidak duplikat
-        if let Some(label) = &req.label {
-            if !self.labels.insert(label.clone()) {
-                return Err(SemanticError::DuplicateLabel(label.clone()));
-            }
+        let label = &req.label;
+        // if let Some(label) = &req.label {
+        if !self.labels.insert(label.clone()) {
+            return Err(SemanticError::DuplicateLabel(label.clone()));
         }
+        // }
 
         // cek url harus string
         match self.resolver.resolve_expression(&req.url).unwrap() {

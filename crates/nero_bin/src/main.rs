@@ -1,33 +1,29 @@
-use clap::Parser;
-
-use crate::{cli::Cli, utils::Utils};
-
 mod cli;
-mod utils;
-// use nero_core::{
-//     ast::Stmt, lexer::Lexer, parser::Parser, resolver::Resolver, semantic::SemanticChecker,
-// };
-// use nero_requests::executor::Executor;
+mod cmds;
 
-// const EXAMPLE: &str = include_str!("../../../dev/sample/simple_get.ns");
+use clap::Parser;
+use cli::args;
+
+use crate::{cli::output::OutputPrint, cmds::run::RunCmd};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let cli = Cli::parse();
+    let cli = args::NeroArgs::parse();
+    #[allow(unused)]
     match cli.command {
-        cli::Commands::Compile { file } => {
-            println!("compile {}", file)
+        args::Commands::Compile { file } => {
+            println!("WIP");
         }
-        cli::Commands::Fetch {
+        args::Commands::Fetch {
             method,
-            #[allow(unused)]
             timeout,
             url,
         } => {
-            println!("fetching {} {}", method, url);
+            println!("WIP");
         }
-        cli::Commands::Run { file } => {
-            let _ = Utils::run_file(&file).await?;
+        args::Commands::Run { file } => {
+            let response = RunCmd::from_file(&file).await?;
+            let _ = OutputPrint::table_summary(response);
         }
     }
 

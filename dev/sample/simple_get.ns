@@ -3,3 +3,9 @@ url = "http://127.0.0.1:${port}";
 
 #[simple_get]
 @GET url {}
+
+#[test_get_user]
+@GET "http://127.0.0.1:${port}/user" {}
+
+#[test_get_user_2]
+@GET "${url}/user" {}

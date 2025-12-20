@@ -7,7 +7,7 @@ use clap::{Parser, Subcommand};
     version,
     about = "A simple tool for fetching HTTP requests"
 )]
-pub struct Cli {
+pub struct NeroArgs {
     // /// Enable verbose logging
     // #[arg(short, long)]
     // pub verbose: bool,
