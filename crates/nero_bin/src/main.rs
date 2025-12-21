@@ -4,7 +4,10 @@ mod cmds;
 use clap::Parser;
 use cli::args;
 
-use crate::{cli::output::OutputPrint, cmds::run::RunCmd};
+use crate::{
+    cli::{args::RunOutputType, output::OutputPrint},
+    cmds::run::RunCmd,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,9 +24,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => {
             println!("WIP");
         }
-        args::Commands::Run { file } => {
+        args::Commands::Run { file, output } => {
             let response = RunCmd::from_file(&file).await?;
-            let _ = OutputPrint::table_summary(response);
+            match output {
+                RunOutputType::Json => OutputPrint::json(&response),
+                RunOutputType::Summary => OutputPrint::summary(&response),
+                RunOutputType::Table => OutputPrint::table(&response),
+            }
         }
     }
 

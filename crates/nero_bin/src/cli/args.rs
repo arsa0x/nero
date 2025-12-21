@@ -1,4 +1,11 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
+
+#[derive(ValueEnum, Clone, Debug)]
+pub enum RunOutputType {
+    Table,
+    Summary,
+    Json,
+}
 
 #[derive(Parser, Debug)]
 #[command(
@@ -21,6 +28,10 @@ pub enum Commands {
     Run {
         /// Path to request file
         file: String,
+
+        /// Type output print
+        #[arg(short, long, value_enum, default_value_t = RunOutputType::Json)]
+        output: RunOutputType,
     },
 
     /// Execute request from line (WIP)

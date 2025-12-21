@@ -9,3 +9,6 @@ url = "http://127.0.0.1:${port}";
 
 #[test_get_user_2]
 @GET "${url}/user" {}
+
+#[test_get_google]
+@GET "https://google.com" {}

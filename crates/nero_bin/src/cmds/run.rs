@@ -1,4 +1,3 @@
-use anyhow::Ok;
 use nero_core::{
     ast::Stmt, lexer::Lexer, parser::Parser, resolver::Resolver, semantic::SemanticChecker,
 };
@@ -13,14 +12,14 @@ pub struct RunCmd {
     pub headers: Vec<(String, String)>,
     pub body: String,
     pub duration_ms: u128,
+    pub file: String,
+    pub date: String,
 }
 impl RunCmd {
-    pub async fn from_file(file: &str) -> Result<Vec<RunCmd>, anyhow::Error> {
+    pub async fn from_file(file: &str) -> anyhow::Result<Vec<RunCmd>> {
         let source_code = fs::read_to_string(file)?;
         let tokens = Lexer::tokenize(&source_code)?;
         let ast = Parser::new(tokens).parse()?;
-
-        let mut result: Vec<RunCmd> = Vec::new();
 
         let mut resolver = Resolver::new();
         for stmt in &ast {
@@ -33,32 +32,37 @@ impl RunCmd {
         }
 
         let executor = Executor::new(&resolver);
-        for stmt in &ast {
-            if let Stmt::Request(req) = stmt {
-                let start = Instant::now();
-                let res = executor.execute(req).await?;
-                let size = res.content_length().unwrap_or(0);
-                let status = res.status().as_u16();
-                let duration_ms = start.elapsed().as_millis();
-                let headers = res
-                    .headers()
-                    .iter()
-                    .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("").to_string()))
-                    .collect::<Vec<_>>();
-                let body = res.text().await?;
-                let label = req.label.clone();
-                let method = req.method.clone();
+        let mut result: Vec<RunCmd> = Vec::new();
 
-                result.push(RunCmd {
-                    method,
-                    size,
-                    label,
-                    status,
-                    headers,
-                    body,
-                    duration_ms,
-                });
-            }
+        for stmt in &ast {
+            let Stmt::Request(req) = stmt else {
+                continue;
+            };
+            let start = Instant::now();
+
+            let response = executor.execute(req).await?;
+
+            let size = response.content_length().unwrap_or(0);
+            let status = response.status().as_u16();
+            let duration_ms = start.elapsed().as_millis();
+            let headers = response
+                .headers()
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("").to_string()))
+                .collect::<Vec<_>>();
+            let body = response.text().await?;
+
+            result.push(RunCmd {
+                file: file.to_string(),
+                date: chrono::Utc::now().to_rfc3339(),
+                method: req.method.clone(),
+                size,
+                label: req.label.clone(),
+                status,
+                headers,
+                body,
+                duration_ms,
+            });
         }
         Ok(result)
     }
