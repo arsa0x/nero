@@ -1,0 +1,42 @@
+{
+  "name": "nero-language",
+  "displayName": "Nero Language",
+  "description": "Syntax highlighting for Nero DSL",
+  "version": "0.0.1",
+  "publisher": "nero",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "packages": {},
+  "contributes": {
+    "languages": [
+      {
+        "id": "nero",
+        "aliases": [
+          "Nero",
+          "nero"
+        ],
+        "extensions": [
+          ".ns"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "nero",
+        "scopeName": "source.nero",
+        "path": "./syntaxes/nero.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "nero",
+        "path": "./snippets/nero.json"
+      }
+    ]
+  }
+}

@@ -757,6 +757,10 @@ name = "nero_core"
 version = "0.1.0"
 
 [[package]]
+name = "nero_lsp"
+version = "0.1.0"
+
+[[package]]
 name = "nero_requests"
 version = "0.1.0"
 dependencies = [

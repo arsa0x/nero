@@ -4,7 +4,7 @@ members = [
     "crates/nero_bin",
     "crates/nero_requests",
     "tests"
-]
+, "crates/nero_lsp"]
 resolver = "3"
 
 [workspace.dependencies]
