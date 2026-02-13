@@ -4,6 +4,7 @@ use nero_core::{
 use nero_requests::executor::Executor;
 use std::{fs, time::Instant};
 
+#[derive(serde::Serialize)]
 pub struct RunCmd {
     pub label: String,
     pub status: u16,
@@ -14,7 +15,9 @@ pub struct RunCmd {
     pub duration_ms: u128,
     pub file: String,
     pub date: String,
+    pub path: String,
 }
+
 impl RunCmd {
     pub async fn from_file(file: &str) -> anyhow::Result<Vec<RunCmd>> {
         let source_code = fs::read_to_string(file)?;
@@ -50,9 +53,12 @@ impl RunCmd {
                 .iter()
                 .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("").to_string()))
                 .collect::<Vec<_>>();
+            let path = response.url().path().to_string();
+
             let body = response.text().await?;
 
             result.push(RunCmd {
+                path,
                 file: file.to_string(),
                 date: chrono::Utc::now().to_rfc3339(),
                 method: req.method.clone(),

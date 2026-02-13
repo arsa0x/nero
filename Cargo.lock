@@ -748,6 +748,8 @@ dependencies = [
  "nero_core",
  "nero_requests",
  "reqwest",
+ "serde",
+ "serde_json",
  "tabled",
  "tokio",
 ]

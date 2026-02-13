@@ -30,8 +30,8 @@ pub enum Commands {
         file: String,
 
         /// Type output print
-        #[arg(short, long, value_enum, default_value_t = RunOutputType::Json)]
-        output: RunOutputType,
+        #[arg(short, long, value_enum, default_value_t = RunOutputType::Summary)]
+        output_type: RunOutputType,
     },
 
     /// Execute request from line (WIP)

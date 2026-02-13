@@ -1,6 +1,6 @@
 {
   "name": "nero-language",
-  "displayName": "Nero Language",
+  "displayName": "Nero Script",
   "description": "Syntax highlighting for Nero DSL",
   "version": "0.0.1",
   "publisher": "nero",
@@ -16,8 +16,8 @@
       {
         "id": "nero",
         "aliases": [
-          "Nero",
-          "nero"
+          "Nero Script",
+          "nero script"
         ],
         "extensions": [
           ".ns"

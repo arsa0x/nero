@@ -1,13 +1,15 @@
 [workspace]
-members = [
-    "crates/nero_core",
-    "crates/nero_bin",
-    "crates/nero_requests",
-    "tests"
-, "crates/nero_lsp"]
 resolver = "3"
+members = [
+  "crates/nero_bin",
+  "crates/nero_core",
+  "crates/nero_lsp",
+  "crates/nero_requests",
+  "tests"
+]
 
 [workspace.dependencies]
-reqwest = {version = "0.12.26", features = ["json"]}
-serde_json = "1.0.145"
 anyhow = "1.0"
+reqwest = { version = "0.12.26", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.145"

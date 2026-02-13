@@ -5,7 +5,7 @@ use clap::Parser;
 use cli::args;
 
 use crate::{
-    cli::{args::RunOutputType, output::OutputPrint},
+    cli::{args::RunOutputType, types::OutputPrint},
     cmds::run::RunCmd,
 };
 
@@ -24,9 +24,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => {
             println!("WIP");
         }
-        args::Commands::Run { file, output } => {
+        args::Commands::Run { file, output_type } => {
             let response = RunCmd::from_file(&file).await?;
-            match output {
+            match output_type {
                 RunOutputType::Json => OutputPrint::json(&response),
                 RunOutputType::Summary => OutputPrint::summary(&response),
                 RunOutputType::Table => OutputPrint::table(&response),

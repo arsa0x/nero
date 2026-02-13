@@ -2,7 +2,7 @@ mod utils;
 
 #[cfg(test)]
 mod tests {
-    const EXAMPLE: &str = include_str!("../../syntax/basic.ns");
+    const EXAMPLE: &str = include_str!("../../syntax/example/basic.ns");
     use crate::utils::TestUtils;
     use nero_core::{
         self,
