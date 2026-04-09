@@ -1,25 +1,90 @@
-#[derive(Debug)]
+/// Represents all possible tokens produced by the lexer
+///
+/// A `Token` is the smallest unit of meaning in the Nero Script
+/// These tokens are later consumed by the parser to build the AST
+///
+/// Each variant represent a spesific syntactic element such as:
+/// - literals (string, number)
+/// - identifiers
+/// - keywords
+/// - symbols (e.g. `{`, `}`, `:`)
+/// - HTTP methods
+#[derive(Debug, PartialEq)]
+#[allow(dead_code)]
 pub enum Token<'a> {
+    /// A string literal
+    ///
+    /// The value does not include the surrounding qoutes
     String(&'a str),
+
+    /// An identifier, e.g. variable names or labels
     Identifier(&'a str),
+
+    /// A number literal
+    ///
+    /// Currently support integer values only
     Number(i32),
+
+    /// A reserved keyword in the Nero Script.
+    ///
+    /// See [`Keyword`] for the list of supported keywords
     Keyword(Keyword),
+
+    /// An HTTP request method (e.g. GET, POST)
+    ///
+    /// See [`RequestMethod`] for the list of supported methods
     Method(RequestMethod),
+
+    /// A return expression
     Return(&'a str),
+
+    /// Assignment operator (`=`)
     Assignment,
+
+    /// Colon symbol (`:`)
+    ///
+    /// Used in key-value pairs
     Colon,
+
+    /// Semicolon (`;`)
+    ///
+    /// Used to determine statements (optional)
     Semicolon,
+
+    /// Comma (`,`)
+    ///
+    /// Used to separate value
     Comma,
+
+    /// Opening brace (`{`).
     OpenBrace,
+
+    /// Closing brace (`}`).
     CloseBrace,
+
+    /// Opening parenthesis (`(`).
     OpenParenthesis,
+
+    /// Closing parenthesis (`)`).
     CloseParenthesis,
+
+    /// End of file
+    ///
+    /// Always appended as the last token
     EOF,
 }
 
+/// Represents errors related to token parsing or conversion
 #[derive(Debug, PartialEq)]
 pub enum TokenError {
+    /// An invalid keyword was encountered
+    ///
+    /// Contains the original string value
     InvalidKeyword(String),
+
+    /// An invalid HTTP method was encountered
+    ///
+    /// Contains the original string value
     InvalidMethod(String),
 }
 
@@ -34,12 +99,24 @@ impl std::fmt::Display for TokenError {
 
 impl std::error::Error for TokenError {}
 
-#[derive(Debug)]
+/// Represents all reserved keywords in the Nero Script
+///
+/// Keywords are used to define request configuration blocks
+#[derive(Debug, PartialEq)]
 pub enum Keyword {
+    /// Query parameter block
     Query,
+
+    /// Request body block
     Body,
+
+    /// HTTP headers block
     Headers,
+
+    /// Retry configuration
     Retry,
+
+    /// Timeout configuration (in miliseconds)
     Timeout,
 }
 
@@ -57,12 +134,22 @@ impl std::str::FromStr for Keyword {
     }
 }
 
-#[derive(Debug)]
+/// Represents supported HTTP request methods
+#[derive(Debug, PartialEq)]
 pub enum RequestMethod {
+    /// HTTP GET request
     GET,
+
+    /// HTTP POST request
     POST,
+
+    /// HTTP PUT request
     PUT,
+
+    /// HTTP PATCH request
     PATCH,
+
+    /// HTTP DELETE request
     DELETE,
 }
 

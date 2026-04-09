@@ -1,8 +1,6 @@
-use crate::lexer::Lexer;
+use nero::lexer::Lexer;
 
-mod lexer;
-mod token;
-const SOURCE: &str = include_str!("../syntax/example/new/syntax.ns");
+const SOURCE: &str = include_str!("../example/requests.ns");
 
 fn main() {
     println!("{}", SOURCE);

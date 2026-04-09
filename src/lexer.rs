@@ -1,21 +1,44 @@
 use std::{
     iter::Peekable,
-    panic,
     str::{Chars, FromStr},
 };
 
 use crate::token::{Keyword, RequestMethod, Token};
 
+/// A lexical analysis for the Nero
+///
+/// The `Lexer` is responsible for converting raw source code into a sequence
+/// of tokens thar will be consumed by the parser
+///
+/// It processes the input character by character and produces tokens such as:
+/// identifier, keywords, literals ans symbols
 pub struct Lexer<'a> {
+    /// Current byte position in the source string
     pub pos: usize,
+
+    /// Iterator over the characters of the source
     pub chars: Peekable<Chars<'a>>,
+
+    /// Original source code
     pub source: &'a str,
 }
 
+/// Represents error that can occur during lexical analysis
 #[derive(Debug, PartialEq)]
 pub enum LexerError {
+    /// A string literal was not properly closed
+    ///
+    /// Contains the starting position of the string
     UnclosedString(usize),
+
+    /// An unexpected character was encountered
+    ///
+    /// Contains the character and its position
     UnexpectedCharacter(String, usize),
+
+    /// An invalid HTTP method was found after '@'
+    ///
+    /// Contains the character and its position
     InvalidMethod(String, usize),
 }
 
@@ -36,6 +59,15 @@ impl std::fmt::Display for LexerError {
 impl std::error::Error for LexerError {}
 
 impl<'a> Lexer<'a> {
+    /// Create a new `Lexer` instance from the given source code
+    ///
+    /// # Arguments
+    /// - `source` - the input string to be tokenized
+    ///
+    /// # Example
+    /// ```
+    /// let lexer = Lexer::new("url = \"http://127.0.0.1\"");
+    /// ```
     pub fn new(source: &'a str) -> Self {
         Self {
             pos: 0,
@@ -44,10 +76,19 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Extracts a slice from the source string starting at `start` up to the
+    /// current lexer position
+    ///
+    /// # Arguments
+    /// - `start` - the starting byte index of the slice
+    ///
+    /// # Returns
+    /// Returns a string slice from the `start` position to the current position
     fn next_slice(&mut self, start: usize) -> &'a str {
         &self.source[start..self.pos]
     }
 
+    /// Advances the lexer to the next character and updates byte position
     fn advance(&mut self) {
         let next = self.chars.next();
         if let Some(c) = next {
@@ -55,6 +96,11 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Consumes characters while the given condition is true
+    ///
+    /// # Arguments
+    /// - `test` - a predicate function used to determine whether
+    ///            the current character should be consumed
     fn read_while<T>(&mut self, test: T)
     where
         T: Fn(char) -> bool,
@@ -68,6 +114,15 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Reads a string literal fron the source.
+    ///
+    /// Assumes the current character is a double quote (`"`)
+    ///
+    /// Returns
+    /// Returns the string slice without the surrounding quotes
+    ///
+    /// # Error
+    /// Returns `LexerError::UnclosedString` if the string is not properly closed
     fn read_string(&mut self) -> Result<&'a str, LexerError> {
         self.advance();
 
@@ -83,6 +138,28 @@ impl<'a> Lexer<'a> {
         Err(LexerError::UnclosedString(start))
     }
 
+    /// Tokenize the entire source input into a sequence of tokens
+    ///
+    /// This function iterates through the source code and produces tokens such as:
+    /// - identifiers
+    /// - keywords
+    /// - string literals
+    /// - numbers
+    /// - HTTP methods
+    ///
+    /// # Returns
+    /// A vector of tokens is successful
+    ///
+    /// # Errors
+    /// - `UnexpectedCharacter` if an invalid character is encountered
+    /// - `UnclosedString` if a string is not closed
+    /// - `InvalidMethod` if an unknown HTTP mathod is used
+    ///
+    /// # Example
+    /// ```
+    /// let mut lexer = Lexer::new("url = \"http://localhost\"");
+    /// let tokens = lexer.tokenize().unwrap();
+    /// ```
     pub fn tokenize(&mut self) -> Result<Vec<Token<'a>>, LexerError> {
         let mut tokens = Vec::new();
 
@@ -184,28 +261,81 @@ impl<'a> Lexer<'a> {
                     self.advance();
                     continue;
                 }
-                // '-' => {
-                //     self.advance();
-
-                //     if let Some('>') = self.chars.peek() {
-                //         self.advance();
-                //         let start_r = self.pos;
-                //         self.read_while(|c| c.is_alphabetic());
-
-                //         tokens.push(Token::Return(self.next_slice(start_r)));
-                //     } else {
-                //         return Err(LexerError::UnexpectedCharacter('-'.to_string(), start));
-                //     }
-
-                //     continue;
-                // }
                 _ => {
                     return Err(LexerError::UnexpectedCharacter(ch.to_string(), self.pos));
                 }
             }
-            // self.advance();
         }
         tokens.push(Token::EOF);
         Ok(tokens)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn assignment_test() {
+        let mut lexer = Lexer::new("url = \"http://127.0.0.1\"");
+        let token = lexer.tokenize().unwrap();
+
+        assert_eq!(
+            token,
+            vec![
+                Token::Identifier("url"),
+                Token::Assignment,
+                Token::String("http://127.0.0.1"),
+                Token::EOF
+            ]
+        );
+    }
+
+    #[test]
+    fn keyword_test() {
+        let mut lexer = Lexer::new("body headers query timeout retry");
+        let token = lexer.tokenize().unwrap();
+
+        assert_eq!(
+            token,
+            vec![
+                Token::Keyword(Keyword::Body),
+                Token::Keyword(Keyword::Headers),
+                Token::Keyword(Keyword::Query),
+                Token::Keyword(Keyword::Timeout),
+                Token::Keyword(Keyword::Retry),
+                Token::EOF,
+            ]
+        );
+    }
+
+    #[test]
+    fn error_unclosed_string_test() {
+        let mut lexer = Lexer::new("\"hello, world!");
+        let token = lexer.tokenize();
+        assert!(token.is_err());
+    }
+
+    #[test]
+    fn method_test() {
+        let mut lexer = Lexer::new("@GET @POST @put @patch @DELete");
+        let token = lexer.tokenize().unwrap();
+        assert_eq!(
+            token,
+            vec![
+                Token::Method(RequestMethod::GET),
+                Token::Method(RequestMethod::POST),
+                Token::Method(RequestMethod::PUT),
+                Token::Method(RequestMethod::PATCH),
+                Token::Method(RequestMethod::DELETE),
+                Token::EOF,
+            ]
+        );
+    }
+
+    #[test]
+    fn error_unknown_method_test() {
+        let mut lexer = Lexer::new("@TEG");
+        let token = lexer.tokenize();
+        assert!(token.is_err());
     }
 }
