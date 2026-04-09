@@ -1,14 +1,11 @@
-variable = value;
-
-#[label]
-@METHOD "url" {
-    HEADER {
-        "header": "value"
-    }
-    QUERY {
-        "QUERY": "value"
-    }
-    BODY {
-        "BODY": "value"
-    }
+variable = value
+@METHOD label(url) {
+    headers {
+        "key": "value"
+    },
+    body {
+        "key": "value"
+    },
+    timeout number,
+    retry number,
 }

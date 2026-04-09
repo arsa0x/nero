@@ -1,0 +1,17 @@
+url = "http://localhost:3000"
+
+@GET get_req_1("1.1.1.1")
+
+@GET get_req_2(url){
+    query {
+        "search": "Search something"
+    }
+    retry 3,
+}
+
+@POST post_req_1(url) {
+    body {
+        "user": "Komdongo",
+        "password": "admin#123"
+    }
+}
