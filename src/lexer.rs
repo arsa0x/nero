@@ -3,7 +3,7 @@ use std::{
     str::{Chars, FromStr},
 };
 
-use crate::token::{Keyword, RequestMethod, Token};
+use crate::token::{Keyword, MathOperator, RequestMethod, Token};
 
 /// A lexical analysis for the Nero
 ///
@@ -66,6 +66,8 @@ impl<'a> Lexer<'a> {
     ///
     /// # Example
     /// ```
+    /// use nero::lexer::Lexer;
+    ///
     /// let lexer = Lexer::new("url = \"http://127.0.0.1\"");
     /// ```
     pub fn new(source: &'a str) -> Self {
@@ -157,6 +159,8 @@ impl<'a> Lexer<'a> {
     ///
     /// # Example
     /// ```
+    /// use nero::lexer::Lexer;
+    ///
     /// let mut lexer = Lexer::new("url = \"http://localhost\"");
     /// let tokens = lexer.tokenize().unwrap();
     /// ```
@@ -231,6 +235,26 @@ impl<'a> Lexer<'a> {
                     self.advance();
                     continue;
                 }
+                '+' => {
+                    tokens.push(Token::Operator(MathOperator::Add));
+                    self.advance();
+                    continue;
+                }
+                '-' => {
+                    tokens.push(Token::Operator(MathOperator::Sub));
+                    self.advance();
+                    continue;
+                }
+                '*' => {
+                    tokens.push(Token::Operator(MathOperator::Mul));
+                    self.advance();
+                    continue;
+                }
+                '/' => {
+                    tokens.push(Token::Operator(MathOperator::Div));
+                    self.advance();
+                    continue;
+                }
                 '(' => {
                     tokens.push(Token::OpenParenthesis);
                     self.advance();
@@ -283,7 +307,7 @@ mod tests {
             token,
             vec![
                 Token::Identifier("url"),
-                Token::Assignment,
+                Token::Operator(MathOperator::Add),
                 Token::String("http://127.0.0.1"),
                 Token::EOF
             ]

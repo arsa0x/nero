@@ -38,8 +38,7 @@ pub enum Token<'a> {
     /// A return expression
     Return(&'a str),
 
-    /// Assignment operator (`=`)
-    Assignment,
+    Operator(MathOperator),
 
     /// Colon symbol (`:`)
     ///
@@ -68,10 +67,33 @@ pub enum Token<'a> {
     /// Closing parenthesis (`)`).
     CloseParenthesis,
 
+    /// Assignment (`=`)
+    Assignment,
+
     /// End of file
     ///
     /// Always appended as the last token
     EOF,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum MathOperator {
+    /// Addition operator (`+`)
+    Add,
+
+    /// Subtraction operator (`-`)
+    Sub,
+
+    /// Multiplication operator (`*`)
+    Mul,
+
+    /// Division operator (`/`)
+    Div,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum UnaryOperator {
+    // to do
 }
 
 /// Represents errors related to token parsing or conversion

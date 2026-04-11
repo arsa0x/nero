@@ -8,4 +8,5 @@ variable = value
     },
     timeout number,
     retry number,
+    sleep number
 }
