@@ -3,7 +3,10 @@ use std::{
     str::{Chars, FromStr},
 };
 
-use crate::token::{Keyword, MathOperator, RequestMethod, Token};
+use crate::{
+    error::LexerError,
+    token::{Keyword, MathOperator, RequestMethod, Token},
+};
 
 /// A lexical analysis for the Nero
 ///
@@ -23,41 +26,6 @@ pub struct Lexer<'a> {
     pub source: &'a str,
 }
 
-/// Represents error that can occur during lexical analysis
-#[derive(Debug, PartialEq)]
-pub enum LexerError {
-    /// A string literal was not properly closed
-    ///
-    /// Contains the starting position of the string
-    UnclosedString(usize),
-
-    /// An unexpected character was encountered
-    ///
-    /// Contains the character and its position
-    UnexpectedCharacter(String, usize),
-
-    /// An invalid HTTP method was found after '@'
-    ///
-    /// Contains the character and its position
-    InvalidMethod(String, usize),
-}
-
-impl std::fmt::Display for LexerError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            LexerError::UnclosedString(u) => write!(f, "unclosed string at position: {}", u),
-            LexerError::UnexpectedCharacter(s, u) => {
-                write!(f, "unexpected character {} at position {}", s, u)
-            }
-            LexerError::InvalidMethod(s, u) => {
-                write!(f, "invalid method {} at position {}", s, u)
-            }
-        }
-    }
-}
-
-impl std::error::Error for LexerError {}
-
 impl<'a> Lexer<'a> {
     /// Create a new `Lexer` instance from the given source code
     ///
@@ -66,7 +34,7 @@ impl<'a> Lexer<'a> {
     ///
     /// # Example
     /// ```
-    /// use nero::lexer::Lexer;
+    /// use nero_core::lexer::Lexer;
     ///
     /// let lexer = Lexer::new("url = \"http://127.0.0.1\"");
     /// ```
@@ -159,7 +127,7 @@ impl<'a> Lexer<'a> {
     ///
     /// # Example
     /// ```
-    /// use nero::lexer::Lexer;
+    /// use nero_core::lexer::Lexer;
     ///
     /// let mut lexer = Lexer::new("url = \"http://localhost\"");
     /// let tokens = lexer.tokenize().unwrap();
@@ -307,7 +275,7 @@ mod tests {
             token,
             vec![
                 Token::Identifier("url"),
-                Token::Operator(MathOperator::Add),
+                Token::Assignment,
                 Token::String("http://127.0.0.1"),
                 Token::EOF
             ]

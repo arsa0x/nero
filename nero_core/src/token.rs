@@ -9,7 +9,7 @@
 /// - keywords
 /// - symbols (e.g. `{`, `}`, `:`)
 /// - HTTP methods
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 #[allow(dead_code)]
 pub enum Token<'a> {
     /// A string literal
@@ -76,7 +76,7 @@ pub enum Token<'a> {
     EOF,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum MathOperator {
     /// Addition operator (`+`)
     Add,
@@ -89,6 +89,15 @@ pub enum MathOperator {
 
     /// Division operator (`/`)
     Div,
+}
+
+impl MathOperator {
+    pub fn get_bind_power(&self) -> (u8, u8) {
+        match self {
+            Self::Add | Self::Sub => (1, 2),
+            Self::Mul | Self::Div => (3, 4),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -124,7 +133,7 @@ impl std::error::Error for TokenError {}
 /// Represents all reserved keywords in the Nero Script
 ///
 /// Keywords are used to define request configuration blocks
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Keyword {
     /// Query parameter block
     Query,
@@ -157,7 +166,7 @@ impl std::str::FromStr for Keyword {
 }
 
 /// Represents supported HTTP request methods
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum RequestMethod {
     /// HTTP GET request
     GET,
