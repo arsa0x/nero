@@ -40,3 +40,10 @@ pub enum ParserError {
     UnexpectedToken,
     UnexpectedEOF,
 }
+
+#[derive(Debug, PartialEq)]
+pub enum ExecError {
+    MissingUrl,
+    InvalidExpression,
+    RequestFailed,
+}

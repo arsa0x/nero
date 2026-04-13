@@ -279,7 +279,7 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_expression(&mut self, min_bp: u8) -> Result<Expression, ParserError> {
+    pub fn parse_expression(&mut self, min_bp: u8) -> Result<Expression, ParserError> {
         let mut lhs = self.parse_primary()?;
 
         loop {

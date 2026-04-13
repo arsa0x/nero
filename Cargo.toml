@@ -1,3 +1,8 @@
 [workspace]
 resolver = "2"
-members = ["nero_core"]
+members = ["nero_cli","nero_core"]
+
+[profile.release]
+opt-level = 3
+strip = true
+lto = true
