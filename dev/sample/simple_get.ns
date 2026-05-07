@@ -1,11 +1,9 @@
-port = 3000;
-url = "http://127.0.0.1:${port}";
+url = "http://localhost"
+port = 3000
 
-#[simple_get]
-@GET url {}
+@GET test_0("${url}:${port}") {}
 
-#[test_get_user]
-@GET "http://127.0.0.1:${port}/user" {}
+@GET test_1("${url}:${port}/user") {
 
-#[test_get_user_2]
-@GET "${url}/user" {}
+
+}

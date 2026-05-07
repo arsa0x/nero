@@ -1,5 +1,4 @@
 use clap::Parser;
-use nero_core::lexer::Lexer;
 use std::fs;
 
 mod args;
@@ -19,10 +18,18 @@ async fn main() {
 }
 
 async fn exec(source: &str) {
-    let tokens = Lexer::new(source).tokenize().unwrap();
-    let pars = nero_core::parser::Parser::new(tokens).parse().unwrap();
-    for par in pars {
-        // let inter = nero_core::interpreter::Interpreter::new().eval_stmt(&par);
-        let _ = nero_core::executor::Executor::new().execute(&par).await;
+    let tokens = nero_core::lexer::Lexer::new(source).tokenize().unwrap();
+    let ast = nero_core::parser::Parser::new(tokens).parse().unwrap();
+
+    let mut interpreter = nero_core::interpreter::Interpreter::new();
+
+    for stmt in &ast {
+        let _ = interpreter.eval_stmt(stmt).unwrap();
+    }
+
+    let mut executor = nero_core::executor::Executor::new(interpreter);
+
+    for stmt in &ast {
+        let _ = executor.execute(stmt).await;
     }
 }

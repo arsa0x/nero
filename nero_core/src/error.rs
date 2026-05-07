@@ -1,3 +1,10 @@
+#[derive(Debug, PartialEq)]
+pub enum Error {
+    LexerError(LexerError),
+    ParserError(ParserError),
+    ExecError(ExecError),
+}
+
 /// Represents error that can occur during lexical analysis
 #[derive(Debug, PartialEq)]
 pub enum LexerError {

@@ -1,5 +1,7 @@
 use std::time::Instant;
 
+use reqwest::Client;
+
 use crate::{
     ast::{Expression, RequestOption, Statement},
     error::ExecError,
@@ -7,18 +9,19 @@ use crate::{
     token::RequestMethod,
 };
 
-use reqwest::Client;
-
 pub struct Executor {
     interpreter: Interpreter,
+    client: Client,
 }
 
 impl Executor {
-    pub fn new() -> Self {
+    pub fn new(interpreter: Interpreter) -> Self {
         Self {
-            interpreter: Interpreter::new(),
+            interpreter,
+            client: Client::new(),
         }
     }
+
     fn eval(&mut self, expr: &Expression) -> Result<Value, ExecError> {
         self.interpreter
             .eval_expr(expr)
@@ -36,11 +39,11 @@ impl Executor {
             return Ok(());
         };
 
-        let client = Client::new();
         let url_expr = args.get(0).ok_or(ExecError::MissingUrl)?;
-        let mut url = match self.eval(url_expr)? {
-            Value::Number(n) => n.to_string(),
+
+        let url = match self.eval(url_expr)? {
             Value::String(s) => s,
+            Value::Number(n) => n.to_string(),
             _ => return Err(ExecError::InvalidExpression),
         };
 
@@ -50,75 +53,84 @@ impl Executor {
 
         for opt in options {
             match opt {
-                RequestOption::Query(q) => {
-                    for (k, v) in q {
-                        let val = self.eval(v)?;
-                        let val = match val {
-                            Value::Number(n) => n.to_string(),
-                            Value::String(s) => s,
-                            _ => return Err(ExecError::InvalidExpression),
-                        };
-                        query.push((k.clone(), val));
+                RequestOption::Headers(expr) => {
+                    let obj = self.eval(expr)?;
+                    let obj = obj.as_object()?;
+
+                    for (k, v) in obj {
+                        headers.push((k.clone(), v.as_string()?));
                     }
                 }
-                RequestOption::Headers(h) => {
-                    for (k, v) in h {
-                        let val = self.eval(v)?;
-                        let val = match val {
-                            Value::Number(n) => n.to_string(),
-                            Value::String(s) => s,
-                            _ => return Err(ExecError::InvalidExpression),
-                        };
-                        headers.push((k.clone(), val));
+
+                RequestOption::Query(expr) => {
+                    let obj = self.eval(expr)?;
+                    let obj = obj.as_object()?;
+
+                    for (k, v) in obj {
+                        query.push((k.clone(), v.to_string_value()?));
                     }
                 }
-                RequestOption::Body(b) => {
-                    for (k, v) in b {
-                        let val = self.eval(v)?;
-                        match val {
-                            Value::String(s) => {
-                                body.insert(k.clone(), serde_json::Value::String(s));
-                            }
-                            Value::Number(n) => {
-                                body.insert(k.clone(), serde_json::Value::Number(n.into()));
-                            }
-                            _ => return Err(ExecError::InvalidExpression),
-                        }
+
+                RequestOption::Body(expr) => {
+                    let obj = self.eval(expr)?;
+                    let obj = obj.as_object()?;
+
+                    for (k, v) in obj {
+                        body.insert(k.clone(), v.to_json());
                     }
                 }
+
                 _ => {}
             }
         }
-        if !query.is_empty() {
-            let qs = query
-                .iter()
-                .map(|(k, v)| format!("{}={}", k, v))
-                .collect::<Vec<_>>()
-                .join("&");
-            url = format!("{}?{}", url, qs);
-        }
-
-        let start = Instant::now();
 
         let mut req = match method {
-            RequestMethod::GET => client.get(&url),
-            RequestMethod::POST => client.post(&url),
-            RequestMethod::PUT => client.put(&url),
-            RequestMethod::PATCH => client.patch(&url),
-            RequestMethod::DELETE => client.delete(&url),
+            RequestMethod::GET => self.client.get(&url),
+            RequestMethod::POST => self.client.post(&url),
+            RequestMethod::PUT => self.client.put(&url),
+            RequestMethod::PATCH => self.client.patch(&url),
+            RequestMethod::DELETE => self.client.delete(&url),
         };
 
+        if !query.is_empty() {
+            req = req.query(&query);
+        }
+
         for (k, v) in headers {
-            req = req.header(&k, &v)
+            req = req.header(k, v);
         }
 
         if !body.is_empty() {
             req = req.json(&body);
         }
 
+        let start = Instant::now();
+
         let res = req.send().await.map_err(|_| ExecError::RequestFailed)?;
+
+        let status = res.status();
         let duration = start.elapsed().as_millis();
-        println!("[{}] {} → {} ({} ms)", name, url, res.status(), duration);
-        return Ok(());
+
+        println!("[{}] {} -> {} ({} ms)", name, url, status, duration);
+
+        let content_type = res
+            .headers()
+            .get("content-type")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("");
+
+        if content_type.contains("application/json") {
+            let json: serde_json::Value = res.json().await.map_err(|_| ExecError::RequestFailed)?;
+
+            println!("{}", serde_json::to_string_pretty(&json).unwrap());
+        } else {
+            let text = res.text().await.map_err(|_| ExecError::RequestFailed)?;
+
+            println!("{}", text);
+        }
+
+        println!();
+
+        Ok(())
     }
 }

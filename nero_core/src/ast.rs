@@ -19,6 +19,7 @@ pub enum Expression {
     Number(i32),
     String(String),
     Identifier(String),
+    Object(Vec<(String, Expression)>),
     Binary {
         left: Box<Expression>,
         op: MathOperator,
@@ -32,9 +33,9 @@ pub enum Expression {
 
 #[derive(Debug, PartialEq)]
 pub enum RequestOption {
-    Headers(Vec<(String, Expression)>),
-    Body(Vec<(String, Expression)>),
-    Query(Vec<(String, Expression)>),
+    Headers(Expression),
+    Body(Expression),
+    Query(Expression),
     Timeout(Expression),
     Retry(Expression),
     Sleep(Expression),
