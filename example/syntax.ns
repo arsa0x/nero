@@ -1,12 +1,118 @@
-variable = value
-@METHOD label(url) {
-    headers {
-        "key": "value"
-    },
-    body {
-        "key": "value"
-    },
-    timeout number,
-    retry number,
-    sleep number
+# syntax
+
+# variable (immutable)
+variable_name = value
+# supported type: string, number (i64) & float (f64)
+
+object = {
+    "key": value
 }
+
+list = [1, 2, 3, 4, 5]
+
+@METHOD label(url)
+{
+    timeout: number
+
+    retry: number
+
+    sleep: number
+
+    headers: {
+        "key": "value"
+    }
+
+    body: {
+        "key": "value"
+    }
+
+    query: {
+        # automatic encode key and value to urlencoded
+        "key": "value"
+    }
+
+    assert: {
+        actual relational_operator expected
+    }
+}
+
+# group (sequential)
+group group_label(url) {
+    headers: {
+        "key": "value"
+    }
+
+    @Method label(endpoint)
+}
+
+# parallel
+parallel {
+     @Method label(url)
+}
+
+parallel 100 {
+     @Method label(url)
+}
+
+# print specific output
+@Method label(url) -> response.status # print status code
+
+# print status code and json
+@Method label(url) -> [response.status, response.json] {
+    headers : {
+        "Content-Type": "application/json"
+    }
+}
+
+# get token from request and use it on another request
+token = @POST login("/login") -> response.json.token
+@GET profile("http://example.com/me") {
+    headers: {
+        "Authorization": "Bearer ${token}"
+    }
+}
+
+# looping
+for i in 1..3 {
+    @GET test_loop("http://example.com/user/${i}")
+}
+
+# stdlib
+token = std::sha256("helloworld")
+enc = std::base64::encode(token)
+dec = std::base64::decode(enc)
+
+
+# example output
+[GET] https://api.example.com/users
+
+STATUS : 200 OK
+TIME   : 124 ms
+SIZE   : 2.1 KB
+TEST   : None
+
+BODY:
+{
+  "users": []
+}
+
+# test output (use `--test`)
+
+# minimal (default)
+[✓] get_users
+[✓] login
+[✗] delete_user
+
+2 passed, 1 failed
+
+# verbose (add `--verbose` or `-v`)
+[✓] get_users
+    [✓] response.status == 200
+    [✓] response.json.users.length > 0
+
+[✗] login
+    [✗] response.status == 401
+        expected: 401
+        received: 500
+
+2 passed, 1 failed

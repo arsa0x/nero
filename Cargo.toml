@@ -1,8 +1,12 @@
-[workspace]
-resolver = "2"
-members = ["nero_cli","nero_core"]
+[package]
+name = "nero"
+version = "0.1.0"
+edition = "2024"
 
-[profile.release]
-opt-level = 3
-strip = true
-lto = true
+[dependencies]
+anyhow = "1.0.102"
+isahc = { version = "1.8.1", features = [ "json", "serde_json", "serde" ] }
+lexopt = "0.3.2"
+thiserror = "2.0.18"
+tokio = { version = "1", features = ["rt", "macros", "rt-multi-thread"] }
+

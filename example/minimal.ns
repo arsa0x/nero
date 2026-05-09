@@ -1,2 +1,0 @@
-@GET minimal_get_1("https://google.com")
-@GET minimal_get_2("https://github.com")
